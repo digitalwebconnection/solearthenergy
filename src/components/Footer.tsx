@@ -7,7 +7,7 @@ export default function Footer() {
       {/* Upper Footer section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 pb-12 border-b border-slate-200">
-          
+
           {/* Column 1: Company Logo & Description */}
           <div className="flex flex-col space-y-4">
             <img src={logo} alt="SolEarth Energy Logo" className="h-16 w-auto object-contain self-start" />
@@ -60,7 +60,7 @@ export default function Footer() {
               <div className="ml-3">
                 <p className="text-sm font-bold text-blue-900">New South Wales</p>
                 <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                  damo  road, kellyville nsw 5550
+                  Damo Road, Kellyville NSW 5550
                 </p>
               </div>
             </div>
@@ -90,7 +90,7 @@ export default function Footer() {
 
         {/* Middle Footer section: Badges & Socials */}
         <div className="flex flex-col lg:flex-row items-center justify-between py-6 gap-6 border-b border-slate-200">
-          
+
           {/* Smart Energy Council Standard Member Logo placeholder */}
           <div className="flex items-center space-x-3">
             {/* Custom premium SVG representing the Smart Energy Council Standard Member logo */}
@@ -164,7 +164,7 @@ export default function Footer() {
             </div>
           </div>
 
-     
+
         </div>
 
         {/* Bottom Footer section: Terms & Legal Info */}

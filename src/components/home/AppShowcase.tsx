@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { Sun, Cpu, CheckCircle, RefreshCw, BarChart2, Battery, Wifi, Signal } from 'lucide-react';
 
 export default function AppShowcase() {
@@ -10,6 +10,51 @@ export default function AppShowcase() {
   const [islandText, setIslandText] = useState('SolEarth Connected');
   const [islandIcon, setIslandIcon] = useState('☀️');
   const [islandExpanded, setIslandExpanded] = useState(false);
+
+  // Live Australia Time (Sydney)
+  const [ausTime, setAusTime] = useState('09:41');
+
+  // 3D Perspective Tilt Motion Values
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+
+  // Map mouse movement to rotation degrees
+  const rotateX = useTransform(tiltY, [-180, 180], [12, -12]);
+  const rotateY = useTransform(tiltX, [-180, 180], [-12, 12]);
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const el = event.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    
+    const mouseX = event.clientX - rect.left - width / 2;
+    const mouseY = event.clientY - rect.top - height / 2;
+    
+    tiltX.set(mouseX);
+    tiltY.set(mouseY);
+  };
+
+  const handleMouseLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+  };
+
+  useEffect(() => {
+    const updateTime = () => {
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: 'Australia/Sydney',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      };
+      setAusTime(new Intl.DateTimeFormat('en-AU', options).format(new Date()));
+    };
+
+    updateTime();
+    const clockInterval = setInterval(updateTime, 60000);
+    return () => clearInterval(clockInterval);
+  }, []);
 
   useEffect(() => {
     let text = 'SolEarth Telemetry';
@@ -53,40 +98,45 @@ export default function AppShowcase() {
             
             {/* Ambient color-synced background glow */}
             <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-              <div className={`w-80 h-80 rounded-full blur-3xl opacity-20 transition-all duration-700 ${
+              <div className={`w-[330px] h-[330px] rounded-full blur-3xl opacity-20 transition-all duration-700 ${
                 activeTab === 'generation' ? 'bg-[#F8C000]' :
                 activeTab === 'shifting' ? 'bg-[#1870B8]' : 'bg-[#28A8E0]'
               }`} />
             </div>
 
-            {/* iPhone 17 Pro Outer Frame */}
-            <div className="relative z-10 w-80 h-[580px] bg-stone-900 rounded-[52px] p-2.5 shadow-2xl border-10 border-stone-800 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:scale-102">
+            {/* iPhone 17 Pro Max Outer Frame */}
+            <motion.div
+               style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: 1000 }}
+               onMouseMove={handleMouseMove}
+               onMouseLeave={handleMouseLeave}
+               className="relative z-10 w-[330px] h-[580px] bg-stone-900 rounded-[56px] p-2.5 shadow-2xl border-10 border-stone-800 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-orange-500/10"
+             >
               
               {/* Outer physical button bumps */}
               {/* Left Action button */}
-              <div className="absolute top-24 left-[-2px] w-[4px] h-6 bg-stone-700 rounded-r-md z-40" />
+              <div className="absolute top-28 left-[-2px] w-[4px] h-7 bg-stone-700 rounded-r-md z-40" />
               {/* Left Volume Up button */}
-              <div className="absolute top-36 left-[-2px] w-[4px] h-12 bg-stone-700 rounded-r-md z-40" />
+              <div className="absolute top-40 left-[-2px] w-[4px] h-14 bg-stone-700 rounded-r-md z-40" />
               {/* Left Volume Down button */}
-              <div className="absolute top-52 left-[-2px] w-[4px] h-12 bg-stone-700 rounded-r-md z-40" />
+              <div className="absolute top-58 left-[-2px] w-[4px] h-14 bg-stone-700 rounded-r-md z-40" />
               {/* Right Power button */}
-              <div className="absolute top-36 right-[-2px] w-[4px] h-14 bg-stone-700 rounded-l-md z-40" />
+              <div className="absolute top-40 right-[-2px] w-[4px] h-16 bg-stone-700 rounded-l-md z-40" />
               {/* Right Camera Control Capacitive Inset Button */}
-              <div className="absolute top-[320px] -right-px w-[3px] h-16 bg-stone-850 border-y border-stone-600 rounded-l-xs z-40" />
+              <div className="absolute top-[380px] -right-px w-[3px] h-20 bg-stone-850 border-y border-stone-600 rounded-l-xs z-40" />
 
               {/* Dynamic screen content */}
-              <div className="flex-1 bg-stone-950 rounded-[42px] overflow-hidden p-5 pt-10 flex flex-col justify-between text-white font-sans text-left relative">
+              <div className="flex-1 bg-[#F8F8F8] rounded-[46px] overflow-hidden p-6 pt-12 flex flex-col justify-between text-slate-800 font-sans text-left relative border border-slate-200">
                 
                 {/* Status Bar */}
-                <div className="absolute top-2 left-0 right-0 px-6 flex justify-between items-center text-[10px] font-semibold text-stone-300 z-40 pointer-events-none select-none">
-                  <div>9:41</div>
+                <div className="absolute top-3 left-0 right-0 px-7 flex justify-between items-center text-[10px] font-bold text-stone-700 z-40 pointer-events-none select-none">
+                  <div>{ausTime}</div>
                   
                   {/* Dynamic Island Container */}
                   <div className="flex items-center justify-center flex-1">
                     <motion.div
                       animate={{
-                        width: islandExpanded ? 165 : 85,
-                        height: islandExpanded ? 24 : 18,
+                        width: islandExpanded ? 180 : 90,
+                        height: islandExpanded ? 26 : 18,
                       }}
                       transition={{ type: "spring", stiffness: 350, damping: 22 }}
                       className="bg-black text-white flex items-center justify-between px-2.5 shadow-lg border border-white/5 rounded-full select-none pointer-events-auto cursor-pointer"
@@ -107,28 +157,28 @@ export default function AppShowcase() {
                           </motion.span>
                         )}
                       </AnimatePresence>
-                      <span className="w-1 h-1 rounded-full bg-blue-500/85 ml-1 shrink-0 animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 shrink-0 animate-pulse" />
                     </motion.div>
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <Signal className="h-2.5 w-2.5 text-stone-300" />
-                    <Wifi className="h-2.5 w-2.5 text-stone-300" />
-                    <div className="w-5 h-2.5 border border-stone-400 rounded-xs p-px flex items-center">
-                      <div className="h-full w-[80%] bg-stone-300 rounded-2xs" />
+                    <Signal className="h-2.5 w-2.5 text-stone-700" />
+                    <Wifi className="h-2.5 w-2.5 text-stone-700" />
+                    <div className="w-5 h-2.5 border border-stone-600 rounded-xs p-px flex items-center">
+                      <div className="h-full w-[80%] bg-stone-700 rounded-2xs" />
                     </div>
                   </div>
                 </div>
 
                 {/* Simulated Header */}
-                <div className="flex justify-between items-center pb-4 border-b border-white/5 mt-1">
+                <div className="flex justify-between items-center pb-4 border-b border-slate-200 mt-1">
                   <div>
-                    <p className="text-[10px] text-stone-400 font-mono">SOLAR TELEMETRY</p>
-                    <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                      <Sun className="h-3.5 w-3.5 text-[#F8C000]" /> SolEarth Live
+                    <p className="text-[10px] text-stone-500 font-mono">SOLAR TELEMETRY</p>
+                    <h4 className="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+                      <Sun className="h-3.5 w-3.5 text-[#1870B8]" /> SolEarth Live
                     </h4>
                   </div>
-                  <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-400">
+                  <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-600">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> Live Sync
                   </div>
                 </div>
@@ -145,12 +195,12 @@ export default function AppShowcase() {
                         transition={{ duration: 0.3 }}
                         className="space-y-4"
                       >
-                        <div className="text-center bg-white/5 border border-white/5 rounded-2xl p-5 relative overflow-hidden">
-                          <p className="text-xs text-stone-400 font-mono">Current Generation</p>
-                          <p className="text-5xl font-black text-[#F8C000] mt-1 tracking-tight">
-                            5.42<span className="text-xl font-normal"> kW</span>
+                        <div className="text-center bg-white border border-slate-200/85 rounded-2xl p-5 relative overflow-hidden shadow-xs">
+                          <p className="text-xs text-stone-500 font-mono">Current Generation</p>
+                          <p className="text-5xl font-black text-[#1870B8] mt-1 tracking-tight">
+                            5.42<span className="text-xl font-normal text-stone-600"> kW</span>
                           </p>
-                          <div className="flex justify-center gap-3 mt-4 text-[10px] text-stone-300">
+                          <div className="flex justify-center gap-3 mt-4 text-[10px] text-stone-600">
                             <span className="flex items-center gap-1"><Cpu className="h-3 w-3 text-[#28A8E0]" /> Smart Inverter</span>
                             <span>•</span>
                             <span>98.6% Eff</span>
@@ -158,19 +208,19 @@ export default function AppShowcase() {
                         </div>
 
                         {/* Interactive Solar Yield Graph */}
-                        <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-2">
-                          <div className="flex justify-between items-center text-[9px] font-mono text-stone-400">
+                        <div className="bg-white border border-slate-200/85 rounded-xl p-3 space-y-2 shadow-xs">
+                          <div className="flex justify-between items-center text-[9px] font-mono text-stone-500">
                             <span>24H YIELD FORECAST</span>
-                            <span className="text-[#F8C000]">Peak 1:00 PM</span>
+                            <span className="text-[#1870B8] font-bold">Peak 1:00 PM</span>
                           </div>
                           <div className="h-12 flex items-end">
                             <svg className="w-full h-full overflow-visible" viewBox="0 0 100 40">
-                              <line x1="0" y1="35" x2="100" y2="35" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-                              <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+                              <line x1="0" y1="35" x2="100" y2="35" stroke="#f1f5f9" strokeWidth="0.8" />
+                              <line x1="0" y1="20" x2="100" y2="20" stroke="#f1f5f9" strokeWidth="0.8" />
                               <motion.path
                                 d="M 0 35 Q 25 35 40 20 T 60 5 T 80 25 T 100 35"
                                 fill="none"
-                                stroke="#F8C000"
+                                stroke="#1870B8"
                                 strokeWidth="2.5"
                                 strokeLinecap="round"
                                 initial={{ pathLength: 0 }}
@@ -192,7 +242,7 @@ export default function AppShowcase() {
                         transition={{ duration: 0.3 }}
                         className="space-y-3"
                       >
-                        <p className="text-[11px] text-stone-400 font-mono uppercase tracking-wider">AI Load shifting (Tap to Toggle)</p>
+                        <p className="text-[11px] text-stone-500 font-mono uppercase tracking-wider">AI Load shifting (Tap to Toggle)</p>
                         {[
                           { name: 'EV Charger Integration', time: '11:00 AM - Optimal' },
                           { name: 'Pool Filtration Pump', time: '12:30 PM - Scheduled' },
@@ -205,14 +255,14 @@ export default function AppShowcase() {
                               updated[index] = !updated[index];
                               setToggles(updated);
                             }}
-                            className="flex justify-between items-center bg-white/5 hover:bg-white/10 rounded-xl p-3 border border-white/5 text-xs transition-all cursor-pointer"
+                            className="flex justify-between items-center bg-white hover:bg-slate-50/50 rounded-xl p-3 border border-slate-200/85 text-xs transition-all cursor-pointer shadow-xs"
                           >
                             <div>
-                              <p className="font-bold text-white">{item.name}</p>
-                              <p className="text-[10px] text-stone-400 mt-0.5">{item.time}</p>
+                              <p className="font-bold text-stone-800">{item.name}</p>
+                              <p className="text-[10px] text-stone-500 mt-0.5">{item.time}</p>
                             </div>
-                            <div className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ${toggles[index] ? 'bg-emerald-500' : 'bg-stone-700'}`}>
-                              <div className={`h-3 w-3 rounded-full bg-white transition-transform duration-200 ${toggles[index] ? 'translate-x-4' : 'translate-x-0'}`} />
+                            <div className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ${toggles[index] ? 'bg-emerald-500' : 'bg-slate-200'}`}>
+                              <div className="h-3 w-3 rounded-full bg-white transition-transform duration-200 shadow-xs" style={{ transform: toggles[index] ? 'translateX(16px)' : 'translateX(0)' }} />
                             </div>
                           </div>
                         ))}
@@ -228,15 +278,15 @@ export default function AppShowcase() {
                         transition={{ duration: 0.3 }}
                         className="space-y-4"
                       >
-                        <div className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                        <div className="bg-white border border-slate-200/85 rounded-2xl p-5 flex items-center justify-between shadow-xs">
                           <div className="space-y-1">
-                            <p className="text-xs text-stone-400 font-mono">Battery Reserve</p>
+                            <p className="text-xs text-stone-500 font-mono">Battery Reserve</p>
                             <p className="text-4xl font-extrabold text-[#28A8E0] tracking-tight">84%</p>
                           </div>
                           <div className="relative h-16 w-16 flex items-center justify-center">
                             <svg className="w-full h-full rotate-270" viewBox="0 0 36 36">
                               <path
-                                className="text-stone-800"
+                                className="text-slate-100"
                                 stroke="currentColor"
                                 strokeWidth="3"
                                 fill="none"
@@ -254,12 +304,12 @@ export default function AppShowcase() {
                                 transition={{ duration: 1.2, ease: "easeOut" }}
                               />
                             </svg>
-                            <div className="absolute text-[11px] font-mono font-bold text-white mt-0.5">
+                            <div className="absolute text-[11px] font-mono font-bold text-stone-850 mt-0.5">
                               84%
                             </div>
                           </div>
                         </div>
-                        <div className="bg-white/5 rounded-xl p-3 border border-white/5 text-xs text-stone-300 leading-relaxed">
+                        <div className="bg-slate-100 border border-slate-200/60 rounded-xl p-3 text-xs text-stone-600 leading-relaxed">
                           Battery storage is optimized for peak shaving. System will discharge during high-tariff grid hours (6:00 PM - 9:00 PM).
                         </div>
                       </motion.div>
@@ -268,33 +318,49 @@ export default function AppShowcase() {
                 </div>
 
                 {/* Simulated Bottom Navigation */}
-                <div className="flex justify-around items-center pt-4 border-t border-white/5 text-stone-500">
+                <div className="flex justify-around items-center pt-4 border-t border-slate-200/80 text-stone-400">
                   <button
                     onClick={() => setActiveTab('generation')}
-                    className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'generation' ? 'text-[#F8C000]' : 'hover:text-stone-300'}`}
+                    className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'generation' ? 'text-[#1870B8]' : 'hover:text-stone-600'}`}
                   >
                     <BarChart2 className="h-5 w-5" />
                     <span className="text-[9px] font-bold">Telemetry</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('shifting')}
-                    className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'shifting' ? 'text-[#F8C000]' : 'hover:text-stone-300'}`}
+                    className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'shifting' ? 'text-[#1870B8]' : 'hover:text-stone-600'}`}
                   >
                     <RefreshCw className="h-5 w-5" />
                     <span className="text-[9px] font-bold">Load Shift</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('battery')}
-                    className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'battery' ? 'text-[#F8C000]' : 'hover:text-stone-300'}`}
+                    className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'battery' ? 'text-[#28A8E0]' : 'hover:text-stone-600'}`}
                   >
                     <Battery className="h-5 w-5" />
                     <span className="text-[9px] font-bold">Battery</span>
                   </button>
                 </div>
 
+                {/* Glass sheen effect */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[46px] z-50">
+                  <motion.div
+                    animate={{
+                      x: ['-150%', '150%'],
+                    }}
+                    transition={{
+                      duration: 3.5,
+                      repeat: Infinity,
+                      repeatDelay: 5,
+                      ease: "easeInOut"
+                    }}
+                    className="absolute inset-0 bg-linear-to-r from-transparent via-white/50 to-transparent -skew-x-12"
+                  />
+                </div>
+
               </div>
-            </div>
-          </div>
+             </motion.div>
+           </div>
 
           {/* Right Column: Premium Text Copy */}
           <div className="lg:col-span-7 space-y-8 text-left">
